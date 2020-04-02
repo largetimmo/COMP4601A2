@@ -1,7 +1,5 @@
 package controller;
 
-import dao.CrawlDataDAO;
-import dao.impl.CrawlDataDAOImpl;
 import javax.ws.rs.*;
 import java.awt.*;
 import java.io.IOException;
@@ -10,12 +8,10 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/sda")
 public class SDAController {
-    public static CrawlDataDAO cdi;
 
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
     public SDAController() throws IOException {
-        cdi = CrawlDataDAOImpl.getInstance();
     }
 
     @GET
