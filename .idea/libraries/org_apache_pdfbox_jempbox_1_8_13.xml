@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="org.apache.pdfbox:jempbox:1.8.13" type="repository">
+    <properties maven-id="org.apache.pdfbox:jempbox:1.8.13" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/jempbox-1.8.13.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

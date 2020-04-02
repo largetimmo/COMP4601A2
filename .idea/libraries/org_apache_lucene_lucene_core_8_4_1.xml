@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="org.apache.lucene:lucene-core:8.4.1" type="repository">
+    <properties maven-id="org.apache.lucene:lucene-core:6.6.6" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/lucene-core-6.6.6.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/lucene-core-6.6.6-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
