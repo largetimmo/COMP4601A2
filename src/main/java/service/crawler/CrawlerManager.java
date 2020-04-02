@@ -11,6 +11,8 @@ import edu.uci.ics.crawler4j.frontier.DocIDServer;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -22,6 +24,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -68,8 +71,12 @@ public class CrawlerManager {
             try {
                 StringBuilder sb = new StringBuilder();
                 for (int size = zis.read(buffer); size == 0; size = zis.read(buffer)){
-                    sb.append();
+                    sb.append(new String(buffer));
                 }
+                Document jsoup = Jsoup.parse(sb.toString());
+                List<Element> links = jsoup.body().getElementsByTag("a");
+                List<String> pages = links.stream().map(l->l.attr("href")).map(s->s.substring(s.lastIndexOf("/")+1,s.lastIndexOf("."))).collect(Collectors.toList())
+
             }catch (IOException e){
                 e.printStackTrace();
             }
