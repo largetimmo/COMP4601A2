@@ -1,6 +1,8 @@
 package service.crawler;
 
+import dao.impl.PageDAO;
 import dao.impl.UserDAO;
+import dao.modal.Page;
 import dao.modal.User;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -25,6 +27,9 @@ public class CrawlerManager {
     private static final CrawlerManager INSTANCE = new CrawlerManager();
 
     private UserDAO userDAO = UserDAO.getInstance();
+
+    private PageDAO pageDAO = PageDAO.getInstance();
+
 
     public CrawlerManager() {
         loadUser();
@@ -85,7 +90,35 @@ public class CrawlerManager {
     }
 
     private void loadPages() {
+        byte[] buffer = new byte[102400];
+        loadZipFile(PAGE_URL, (ZipInputStream zis, ZipEntry entry) -> {
+            Page page = new Page();
+            page.setId(entry.getName().substring(entry.getName().lastIndexOf("/") + 1, entry.getName().indexOf(".html")));
+            try {
+                StringBuilder sb = new StringBuilder();
+                int count = 0;
+                while (zis.available() > 0) {
+                    count = zis.read(buffer);
+                    if(count == -1){
+                        continue;
+                    }
+                    sb.append(new String(Arrays.copyOf(buffer,count)));
+                }
+                Document jsoup = Jsoup.parse(sb.toString());
+                List<Element> links = jsoup.body().getElementsByTag("a");
+                List<String> reviews = links.stream()
+                        .map(l -> l.attr("href"))
+                        .filter(l->l.endsWith(".html"))
+                        .map(s -> s.substring(s.lastIndexOf("/") + 1, s.lastIndexOf(".")))
+                        .map(s->s+"-"+page.getId())
+                        .collect(Collectors.toList());
+                page.setReviewsIds(reviews);
+                pageDAO.save(page);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
+        });
     }
 
     private void loadReviews() {
