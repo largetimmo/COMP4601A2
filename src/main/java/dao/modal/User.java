@@ -10,6 +10,10 @@ public class User {
 
     private List<String> reviews;
 
+    private Double score;
+
+    private Double helpful;
+
     public String getId() {
         return id;
     }
