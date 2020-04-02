@@ -3,7 +3,15 @@ package service.crawler;
 import Jama.Matrix;
 import org.jgrapht.graph.*;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.util.stream.IntStream;
+import java.util.zip.ZipInputStream;
 
 public class GraphManager {
 
@@ -92,10 +100,13 @@ public class GraphManager {
 
     }
 
-    public static void main(String[] args) {
-
-        GraphManager graphManager = new GraphManager();
-        graphManager.getRank(graphManager.generateGraph());
+    public static void main(String[] args) throws IOException {
+        BufferedInputStream bis = new BufferedInputStream(new URL("https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4601/assignments/archive/pages.zip").openStream());
+        ZipInputStream zipInputStream = new ZipInputStream(bis);
+        System.out.println(zipInputStream.getNextEntry());
+        System.out.println(zipInputStream.getNextEntry());
+        System.out.println(zipInputStream.getNextEntry());
+        System.out.println(zipInputStream.getNextEntry());
     }
 }
 

@@ -21,6 +21,7 @@
           <element id="library" level="project" name="org.jsoup:jsoup:1.12.2" />
           <element id="library" level="project" name="org.mongodb:mongodb-driver-sync:3.12.1" />
           <element id="library" level="project" name="org.glassfish.jersey.containers:jersey-container-servlet:2.27" />
+          <element id="library" level="project" name="javax:javaee-api:7.0" />
         </element>
       </element>
     </root>
