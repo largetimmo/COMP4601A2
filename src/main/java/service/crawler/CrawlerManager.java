@@ -75,7 +75,7 @@ public class CrawlerManager {
                 }
                 Document jsoup = Jsoup.parse(sb.toString());
                 List<Element> links = jsoup.body().getElementsByTag("a");
-                List<String> pages = links.stream().map(l->l.attr("href")).map(s->s.substring(s.lastIndexOf("/")+1,s.lastIndexOf("."))).collect(Collectors.toList())
+                List<String> pages = links.stream().map(l->l.attr("href")).map(s->s.substring(s.lastIndexOf("/")+1,s.lastIndexOf("."))).collect(Collectors.toList());
 
             }catch (IOException e){
                 e.printStackTrace();
