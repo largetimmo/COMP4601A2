@@ -1,32 +1,19 @@
 package service.crawler;
 
-import dao.CrawlDataDAO;
-import dao.impl.CrawlDataDAOImpl;
-import dao.modal.CrawlDataEntity;
+import dao.impl.UserDAO;
 import dao.modal.User;
-import edu.uci.ics.crawler4j.crawler.CrawlConfig;
-import edu.uci.ics.crawler4j.crawler.CrawlController;
-import edu.uci.ics.crawler4j.fetcher.PageFetcher;
-import edu.uci.ics.crawler4j.frontier.DocIDServer;
-import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
-import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 public class CrawlerManager {
@@ -37,58 +24,71 @@ public class CrawlerManager {
 
     private static final CrawlerManager INSTANCE = new CrawlerManager();
 
-    private CrawlDataDAO crawlDataDAO;
+    private UserDAO userDAO = UserDAO.getInstance();
 
     public CrawlerManager() {
-        crawlDataDAO = CrawlDataDAOImpl.getInstance();
-
+        loadUser();
+        loadPages();
+        loadReviews();
     }
 
     private int id = 0;
+
     public static CrawlerManager getInstance() {
         return INSTANCE;
     }
 
-    private void loadZipFile(String url, BiConsumer<ZipInputStream ,ZipEntry> consumer) {
+    private void loadZipFile(String url, BiConsumer<ZipInputStream, ZipEntry> consumer) {
         try {
-            ZipInputStream zipInputStream = new ZipInputStream(new BufferedInputStream(new URL(url).openStream()));
-            for (ZipEntry zipEntry = zipInputStream.getNextEntry(); zipEntry == null; zipEntry = zipInputStream.getNextEntry()) {
-                if(!zipEntry.getName().endsWith("html")){
+            ZipInputStream zipInputStream = new ZipInputStream(new URL(url).openStream());
+            for (ZipEntry zipEntry = zipInputStream.getNextEntry(); ; zipEntry = zipInputStream.getNextEntry()) {
+                if (zipEntry == null) {
+                    break;
+                }
+                if (!zipEntry.getName().endsWith("html")) {
                     continue;
                 }
-                consumer.accept(zipInputStream,zipEntry);
+                consumer.accept(zipInputStream, zipEntry);
             }
+            zipInputStream.close();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void loadUser(){
-        byte[] buffer = new byte[1024];
-        loadZipFile(USER_URL,(ZipInputStream zis, ZipEntry entry)->{
+    private void loadUser() {
+        byte[] buffer = new byte[102400];
+        loadZipFile(USER_URL, (ZipInputStream zis, ZipEntry entry) -> {
             User user = new User();
-            user.setId(entry.getName().substring(0,entry.getName().indexOf(".html")));
+            user.setId(entry.getName().substring(entry.getName().lastIndexOf("/") + 1, entry.getName().indexOf(".html")));
             try {
                 StringBuilder sb = new StringBuilder();
-                for (int size = zis.read(buffer); size == 0; size = zis.read(buffer)){
-                    sb.append(new String(buffer));
+                int count = 0;
+                while (zis.available() > 0) {
+                    count = zis.read(buffer);
+                    if(count == -1){
+                        continue;
+                    }
+                    sb.append(new String(Arrays.copyOf(buffer,count)));
                 }
                 Document jsoup = Jsoup.parse(sb.toString());
                 List<Element> links = jsoup.body().getElementsByTag("a");
-                List<String> pages = links.stream().map(l->l.attr("href")).map(s->s.substring(s.lastIndexOf("/")+1,s.lastIndexOf("."))).collect(Collectors.toList());
-
-            }catch (IOException e){
+                List<String> pages = links.stream().map(l -> l.attr("href")).map(s -> s.substring(s.lastIndexOf("/") + 1, s.lastIndexOf("."))).collect(Collectors.toList());
+                user.setViewedSite(pages);
+                userDAO.save(user);
+            } catch (IOException e) {
                 e.printStackTrace();
             }
 
         });
     }
 
-    private void loadPages(){
+    private void loadPages() {
 
     }
 
-    private void loadReviews(){
+    private void loadReviews() {
 
     }
 
