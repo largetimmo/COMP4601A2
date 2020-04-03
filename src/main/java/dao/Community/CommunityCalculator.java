@@ -1,21 +1,24 @@
 package dao.Community;
+import dao.impl.UserDAO;
+import dao.modal.User;
+
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
 
 public class CommunityCalculator {
     private int no_users;
     private CUser[] users;
-    private int no_features=5;
+    private int no_features=10;
     private boolean changed;
     private int no_clusters = 5;
+    private int user_count = 0;
 
     /*
      * Constructor that reads the data in from a file.
      * You must specify the number of clusters.
      */
     public CommunityCalculator(int noUsers){
-
-
         changed = true;
 
         this.no_users = noUsers;
@@ -96,6 +99,69 @@ public class CommunityCalculator {
         }
     }
 
+    private void addUserHelper(String name,ArrayList<Double> features){
+        users[user_count] = new CUser(name,no_features,no_clusters);
+        for (int i = 0;i<no_features;i++){
+            users[user_count].features[i] = features.get(i);
+        }
+        user_count++;
+    }
+
+    private void addUser(User user){
+        ArrayList<Double> d = generateUserFeatures(user);
+        addUserHelper(user.getId(),d);
+    }
+
+    private ArrayList<CUser> getAllUsersInCluster(String name){
+        int cluster = getClusterByUserName(name);
+        ArrayList<CUser> cu = new ArrayList<>();
+        for (CUser u: users){
+            if (u.cluster == cluster){
+                cu.add(u);
+            }
+        }
+        return cu;
+    }
+
+    private ArrayList<Double> generateUserFeatures(User user){
+        //avg score (5) -> no. review (100暂定) -> positive from other (8000 暂定)-> negative from other (8000暂定)
+        //-> helpful (1) -> very positive sentiment(1433) -> positive sentiment (5045)
+        //->neutral (3360) -> nagative (8233) -> very negative (337)
+        ArrayList<Double> temp = new ArrayList<>();
+//        ArrayList<Double> generator = new ArrayList<>();
+//        generator.add((double) 5);
+//        generator.add((double) 478);
+//        generator.add((double) 8000);
+//        generator.add((double) 8000);
+//        generator.add((double) 1);
+//        generator.add((double) 1433);
+//        generator.add((double) 5045);
+//        generator.add((double) 3360);
+//        generator.add((double) 8233);
+//        generator.add((double) 337);
+
+        temp.add(user.getScoreAvg()*10/5);
+        temp.add((double) ((user.getReviews().size()*10)/478));
+        temp.add(user.getHelpful()*user.getThumbsFromOthers()*10/8000);
+        temp.add((1-user.getHelpful())*user.getThumbsFromOthers()*10/8000);
+        temp.add(user.getHelpful()*10);
+        temp.add((double)user.getVeryPositive()*10/1433);
+        temp.add((double)user.getPositive()*10/5045);
+        temp.add((double)user.getNatural()*10/8233);
+        temp.add((double)user.getNegative()*10/8233);
+        temp.add((double)user.getVeryNegative()*10/337);
+        return temp;
+    }
+
+    public int getClusterByUserName(String name){
+        for (CUser u: users){
+            if (u.name.equals(name)){
+                return u.cluster;
+            }
+        }
+        return -1;
+    }
+
     /*
      * Computes distance between two users
      * Could implement this on User too.
@@ -110,7 +176,7 @@ public class CommunityCalculator {
         return Math.sqrt(rtn);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 //        try {
 //            int numberOfClusters = 2;
 //            String fileName = System.getProperty("user.dir")+"\\KNN-1.txt";
@@ -118,6 +184,25 @@ public class CommunityCalculator {
 //            knn.algorithm();
 //        } catch (Exception e) {
 //            e.printStackTrace();
+//        }
+        UserDAO userd = new UserDAO();
+        List<User> users = userd.findAllUsers();
+
+        CommunityCalculator cc = new CommunityCalculator(users.size());
+        for (User user : users) {
+            cc.addUser(user);
+        }
+        cc.algorithm();
+        System.out.println(cc.getClusterByUserName(users.get(1).getId()));
+        ArrayList<CUser> temp = cc.getAllUsersInCluster(users.get(1).getId());
+//        for (CUser c:temp){
+//            System.out.println(c.name);
+//            System.out.println(c.cluster);
+//            for (Double d:c.features){
+//                System.out.println();
+//                System.out.print(d+" ");
+//                System.out.println();
+//            }
 //        }
     }
 
