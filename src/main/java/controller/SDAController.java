@@ -23,7 +23,41 @@ public class SDAController {
     @Path("context")
     @Produces(MediaType.TEXT_HTML)
     public String getContext(){
-        return "";
+
+        String table = "<!DOCTYPE html>\n" +
+                "<html>\n" +
+                "<head>\n" +
+                "<style>\n" +
+                "table {\n" +
+                "  font-family: arial, sans-serif;\n" +
+                "  border-collapse: collapse;\n" +
+                "  width: 100%;\n" +
+                "}\n" +
+                "\n" +
+                "td, th {\n" +
+                "  border: 1px solid #dddddd;\n" +
+                "  text-align: left;\n" +
+                "  padding: 8px;\n" +
+                "}\n" +
+                "\n" +
+                "tr:nth-child(even) {\n" +
+                "  background-color: #dddddd;\n" +
+                "}\n" +
+                "</style>\n" +
+                "</head>\n" +
+                "<body>\n"+
+                "<h2>Context</h2>\n";
+
+        table += "<table><tr>" +
+                "<th>User</th>" +
+                "<th>Ave Score</th>" +
+                "<th>No. reviews</th>" +
+                "<th>positive review from other user</th>" +
+                "<th>negative review from other user(%)</th>" +
+                "<th>helpful review (%)</th>" +
+                "</tr>";
+        table += "</table></body></html>";
+        return table;
     }
 
 
