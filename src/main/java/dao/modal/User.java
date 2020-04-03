@@ -10,9 +10,19 @@ public class User {
 
     private List<String> reviews;
 
-    private Double score;
+    private Double scoreAvg;
 
     private Double helpful;
+
+    private Integer thumbsFromOthers;
+
+    public Integer getThumbsFromOthers() {
+        return thumbsFromOthers;
+    }
+
+    public void setThumbsFromOthers(Integer thumbsFromOthers) {
+        this.thumbsFromOthers = thumbsFromOthers;
+    }
 
     public String getId() {
         return id;
@@ -36,5 +46,21 @@ public class User {
 
     public void setReviews(List<String> reviews) {
         this.reviews = reviews;
+    }
+
+    public Double getScoreAvg() {
+        return scoreAvg;
+    }
+
+    public void setScoreAvg(Double scoreAvg) {
+        this.scoreAvg = scoreAvg;
+    }
+
+    public Double getHelpful() {
+        return helpful;
+    }
+
+    public void setHelpful(Double helpful) {
+        this.helpful = helpful;
     }
 }

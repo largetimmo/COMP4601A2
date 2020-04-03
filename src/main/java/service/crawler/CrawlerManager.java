@@ -1,8 +1,10 @@
 package service.crawler;
 
 import dao.impl.PageDAO;
+import dao.impl.ReviewDAO;
 import dao.impl.UserDAO;
 import dao.modal.Page;
+import dao.modal.Review;
 import dao.modal.User;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -11,8 +13,7 @@ import org.jsoup.nodes.Element;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -30,11 +31,14 @@ public class CrawlerManager {
 
     private PageDAO pageDAO = PageDAO.getInstance();
 
+    private ReviewDAO reviewDAO = ReviewDAO.getInstance();
+
 
     public CrawlerManager() {
         loadUser();
         loadPages();
         loadReviews();
+        calculateUserProfile();
     }
 
     private int id = 0;
@@ -72,10 +76,10 @@ public class CrawlerManager {
                 int count = 0;
                 while (zis.available() > 0) {
                     count = zis.read(buffer);
-                    if(count == -1){
+                    if (count == -1) {
                         continue;
                     }
-                    sb.append(new String(Arrays.copyOf(buffer,count)));
+                    sb.append(new String(Arrays.copyOf(buffer, count)));
                 }
                 Document jsoup = Jsoup.parse(sb.toString());
                 List<Element> links = jsoup.body().getElementsByTag("a");
@@ -99,18 +103,18 @@ public class CrawlerManager {
                 int count = 0;
                 while (zis.available() > 0) {
                     count = zis.read(buffer);
-                    if(count == -1){
+                    if (count == -1) {
                         continue;
                     }
-                    sb.append(new String(Arrays.copyOf(buffer,count)));
+                    sb.append(new String(Arrays.copyOf(buffer, count)));
                 }
                 Document jsoup = Jsoup.parse(sb.toString());
                 List<Element> links = jsoup.body().getElementsByTag("a");
                 List<String> reviews = links.stream()
                         .map(l -> l.attr("href"))
-                        .filter(l->l.endsWith(".html"))
+                        .filter(l -> l.endsWith(".html"))
                         .map(s -> s.substring(s.lastIndexOf("/") + 1, s.lastIndexOf(".")))
-                        .map(s->s+"-"+page.getId())
+                        .map(s -> s + "-" + page.getId())
                         .collect(Collectors.toList());
                 page.setReviewsIds(reviews);
                 pageDAO.save(page);
@@ -122,7 +126,76 @@ public class CrawlerManager {
     }
 
     private void loadReviews() {
+        byte[] buffer = new byte[102400];
+        loadZipFile(REVIEW_URL, (ZipInputStream zis, ZipEntry entry) -> {
+            Review review = new Review();
+            review.setId(entry.getName().substring(entry.getName().lastIndexOf("/") + 1, entry.getName().indexOf(".html")));
+            try {
+                StringBuilder sb = new StringBuilder();
+                int count = 0;
+                while (zis.available() > 0) {
+                    count = zis.read(buffer);
+                    if (count == -1) {
+                        continue;
+                    }
+                    sb.append(new String(Arrays.copyOf(buffer, count)));
+                }
+                Document jsoup = Jsoup.parse(sb.toString());
+                String filename = entry.getName();
+                String userId = filename.substring(filename.lastIndexOf("/") + 1, filename.lastIndexOf("-"));
+                String pageId = filename.substring(filename.lastIndexOf("-") + 1, filename.lastIndexOf(".html"));
+                User user = userDAO.getById(userId);
+                if (user.getReviews() == null) {
+                    user.setReviews(new ArrayList<>());
+                }
+                user.getReviews().add(review.getId());
+                userDAO.update(user);
+                review.setContent(jsoup.body().text());
+                review.setUserId(userId);
+                review.setPageId(pageId);
+                Map<String, String> metadata = jsoup.head().getElementsByTag("meta").stream().map(e -> new Map.Entry<String, String>() {
+                    @Override
+                    public String getKey() {
+                        return e.attr("name");
+                    }
 
+                    @Override
+                    public String getValue() {
+                        return e.attr("content");
+                    }
+
+                    @Override
+                    public String setValue(String value) {
+                        return null;
+                    }
+                }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                review.setSummary(metadata.get("summary"));
+                review.setScore(Double.parseDouble(metadata.get("score")));
+                int helpful = Integer.parseInt(metadata.get("helpfulness").substring(0, metadata.get("helpfulness").lastIndexOf("/")));
+                int helpless = Integer.parseInt(metadata.get("helpfulness").substring(metadata.get("helpfulness").lastIndexOf("/") + 1));
+                review.setHelpful(helpful);
+                review.setHelpless(helpless);
+                reviewDAO.save(review);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void calculateUserProfile() {
+        List<User> userList = userDAO.findAllUsers();
+        for (User u : userList) {
+            List<Review> reviews = reviewDAO.findByUserId(u.getId());
+            u.setThumbsFromOthers(reviews.stream().mapToInt(r -> r.getHelpful() + r.getHelpless()).sum());
+            u.setHelpful(((double) reviews.stream().mapToInt(Review::getHelpful).sum()) / u.getThumbsFromOthers());
+            u.setScoreAvg(reviews.stream().mapToDouble(Review::getScore).sum() / u.getReviews().size());
+            userDAO.update(u);
+        }
+    }
+
+    public static void main(String[] args) {
+        CrawlerManager crawlerManager = new CrawlerManager();
+        crawlerManager.loadReviews();
     }
 
 }
