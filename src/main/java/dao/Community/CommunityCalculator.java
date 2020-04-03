@@ -108,10 +108,7 @@ public class CommunityCalculator {
     }
 
     private void addUser(User user){
-        ArrayList<Double> d = new ArrayList<>();
-        d.add(user.getScoreAvg());
-        d.add(user.getHelpful());
-        d.add((double) user.getReviews().size());
+        ArrayList<Double> d = generateUserFeatures(user);
         addUserHelper(user.getId(),d);
     }
 
@@ -131,17 +128,28 @@ public class CommunityCalculator {
         //-> helpful (1) -> very positive sentiment(1433) -> positive sentiment (5045)
         //->neutral (3360) -> nagative (8233) -> very negative (337)
         ArrayList<Double> temp = new ArrayList<>();
-        ArrayList<Double> generator = new ArrayList<>();
-        generator.add((double) 5);
-        generator.add((double) 100);
-        generator.add((double) 8000);
-        generator.add((double) 8000);
-        generator.add((double) 1);
-        generator.add((double) 1433);
-        generator.add((double) 5045);
-        generator.add((double) 3360);
-        generator.add((double) 8233);
-        generator.add((double) 337);
+//        ArrayList<Double> generator = new ArrayList<>();
+//        generator.add((double) 5);
+//        generator.add((double) 478);
+//        generator.add((double) 8000);
+//        generator.add((double) 8000);
+//        generator.add((double) 1);
+//        generator.add((double) 1433);
+//        generator.add((double) 5045);
+//        generator.add((double) 3360);
+//        generator.add((double) 8233);
+//        generator.add((double) 337);
+
+        temp.add(user.getScoreAvg()*10/5);
+        temp.add((double) ((user.getReviews().size()*10)/478));
+        temp.add(user.getHelpful()*user.getThumbsFromOthers()*10/8000);
+        temp.add((1-user.getHelpful())*user.getThumbsFromOthers()*10/8000);
+        temp.add(user.getHelpful()*10);
+        temp.add((double)user.getVeryPositive()*10/1433);
+        temp.add((double)user.getPositive()*10/5045);
+        temp.add((double)user.getNatural()*10/8233);
+        temp.add((double)user.getNegative()*10/8233);
+        temp.add((double)user.getVeryNegative()*10/337);
         return temp;
     }
 
@@ -187,10 +195,15 @@ public class CommunityCalculator {
         cc.algorithm();
         System.out.println(cc.getClusterByUserName(users.get(1).getId()));
         ArrayList<CUser> temp = cc.getAllUsersInCluster(users.get(1).getId());
-        for (CUser c:temp){
-            System.out.println(c.name);
-            System.out.println(c.cluster);
-        }
+//        for (CUser c:temp){
+//            System.out.println(c.name);
+//            System.out.println(c.cluster);
+//            for (Double d:c.features){
+//                System.out.println();
+//                System.out.print(d+" ");
+//                System.out.println();
+//            }
+//        }
     }
 
     // Private class for representing user
