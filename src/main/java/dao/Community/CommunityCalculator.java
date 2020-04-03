@@ -1,21 +1,24 @@
 package dao.Community;
+import dao.impl.UserDAO;
+import dao.modal.User;
+
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
 
 public class CommunityCalculator {
     private int no_users;
     private CUser[] users;
-    private int no_features=5;
+    private int no_features=3;
     private boolean changed;
     private int no_clusters = 5;
+    private int user_count = 0;
 
     /*
      * Constructor that reads the data in from a file.
      * You must specify the number of clusters.
      */
     public CommunityCalculator(int noUsers){
-
-
         changed = true;
 
         this.no_users = noUsers;
@@ -96,6 +99,42 @@ public class CommunityCalculator {
         }
     }
 
+    private void addUserHelper(String name,ArrayList<Double> features){
+        users[user_count] = new CUser(name,no_features,no_clusters);
+        for (int i = 0;i<no_features;i++){
+            users[user_count].features[i] = features.get(i);
+        }
+        user_count++;
+    }
+
+    private void addUser(User user){
+        ArrayList<Double> d = new ArrayList<>();
+        d.add(user.getScoreAvg());
+        d.add(user.getHelpful());
+        d.add((double) user.getReviews().size());
+        addUserHelper(user.getId(),d);
+    }
+
+    private ArrayList<CUser> getAllUsersInCluster(String name){
+        int cluster = getClusterByUserName(name);
+        ArrayList<CUser> cu = new ArrayList<>();
+        for (CUser u: users){
+            if (u.cluster == cluster){
+                cu.add(u);
+            }
+        }
+        return cu;
+    }
+
+    public int getClusterByUserName(String name){
+        for (CUser u: users){
+            if (u.name.equals(name)){
+                return u.cluster;
+            }
+        }
+        return -1;
+    }
+
     /*
      * Computes distance between two users
      * Could implement this on User too.
@@ -110,7 +149,7 @@ public class CommunityCalculator {
         return Math.sqrt(rtn);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 //        try {
 //            int numberOfClusters = 2;
 //            String fileName = System.getProperty("user.dir")+"\\KNN-1.txt";
@@ -119,6 +158,20 @@ public class CommunityCalculator {
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
+        UserDAO userd = new UserDAO();
+        List<User> users = userd.findAllUsers();
+
+        CommunityCalculator cc = new CommunityCalculator(users.size());
+        for (User user : users) {
+            cc.addUser(user);
+        }
+        cc.algorithm();
+        System.out.println(cc.getClusterByUserName(users.get(1).getId()));
+        ArrayList<CUser> temp = cc.getAllUsersInCluster(users.get(1).getId());
+        for (CUser c:temp){
+            System.out.println(c.name);
+            System.out.println(c.cluster);
+        }
     }
 
     // Private class for representing user
