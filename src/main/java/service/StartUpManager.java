@@ -10,7 +10,7 @@ public class StartUpManager {
 //    public StartUpManager() {
 //        startCrawler();
 //    }
-
+//
 //    private void startCrawler() {
 //        CrawlerManager.getInstance();
 //    }

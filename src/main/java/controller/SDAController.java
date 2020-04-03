@@ -1,9 +1,13 @@
 package controller;
 
+import dao.impl.UserDAO;
+import dao.modal.User;
+
 import javax.ws.rs.*;
 import java.awt.*;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.List;
 import javax.ws.rs.core.MediaType;
 
 @Path("/sda")
@@ -23,6 +27,8 @@ public class SDAController {
     @Path("context")
     @Produces(MediaType.TEXT_HTML)
     public String getContext(){
+        UserDAO userd = new UserDAO();
+        List<User> users = userd.findAllUsers();
 
         String table = "<!DOCTYPE html>\n" +
                 "<html>\n" +
@@ -53,9 +59,20 @@ public class SDAController {
                 "<th>Ave Score</th>" +
                 "<th>No. reviews</th>" +
                 "<th>positive review from other user</th>" +
-                "<th>negative review from other user(%)</th>" +
+                "<th>negative review from other user</th>" +
                 "<th>helpful review (%)</th>" +
                 "</tr>";
+
+        for (User u : users){
+            table+= "<tr>" +
+                    "<th>"+u.getId()+"</th>" +
+                    "<th>"+u.getScoreAvg()+"</th>" +
+                    "<th>"+u.getReviews().size()+"</th>" +
+                    "<th>"+ (int) (u.getThumbsFromOthers() * u.getHelpful()) +"</th>" +
+                    "<th>"+(int)(u.getThumbsFromOthers()-(u.getThumbsFromOthers()*u.getHelpful()))+"</th>" +
+                    "<th>"+u.getHelpful()+"</th>" +
+                    "</tr>";
+        }
         table += "</table></body></html>";
         return table;
     }
