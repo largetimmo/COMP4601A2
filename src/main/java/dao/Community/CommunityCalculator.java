@@ -9,7 +9,7 @@ import java.util.*;
 public class CommunityCalculator {
     private int no_users;
     private CUser[] users;
-    private int no_features=3;
+    private int no_features=10;
     private boolean changed;
     private int no_clusters = 5;
     private int user_count = 0;
@@ -124,6 +124,25 @@ public class CommunityCalculator {
             }
         }
         return cu;
+    }
+
+    private ArrayList<Double> generateUserFeatures(User user){
+        //avg score (5) -> no. review (100暂定) -> positive from other (8000 暂定)-> negative from other (8000暂定)
+        //-> helpful (1) -> very positive sentiment(1433) -> positive sentiment (5045)
+        //->neutral (3360) -> nagative (8233) -> very negative (337)
+        ArrayList<Double> temp = new ArrayList<>();
+        ArrayList<Double> generator = new ArrayList<>();
+        generator.add((double) 5);
+        generator.add((double) 100);
+        generator.add((double) 8000);
+        generator.add((double) 8000);
+        generator.add((double) 1);
+        generator.add((double) 1433);
+        generator.add((double) 5045);
+        generator.add((double) 3360);
+        generator.add((double) 8233);
+        generator.add((double) 337);
+        return temp;
     }
 
     public int getClusterByUserName(String name){
