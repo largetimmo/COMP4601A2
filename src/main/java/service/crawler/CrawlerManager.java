@@ -1,32 +1,22 @@
 package service.crawler;
 
-import dao.CrawlDataDAO;
-import dao.impl.CrawlDataDAOImpl;
-import dao.modal.CrawlDataEntity;
+import dao.impl.PageDAO;
+import dao.impl.ReviewDAO;
+import dao.impl.UserDAO;
+import dao.modal.Page;
+import dao.modal.Review;
 import dao.modal.User;
-import edu.uci.ics.crawler4j.crawler.CrawlConfig;
-import edu.uci.ics.crawler4j.crawler.CrawlController;
-import edu.uci.ics.crawler4j.fetcher.PageFetcher;
-import edu.uci.ics.crawler4j.frontier.DocIDServer;
-import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
-import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 public class CrawlerManager {
@@ -37,59 +27,175 @@ public class CrawlerManager {
 
     private static final CrawlerManager INSTANCE = new CrawlerManager();
 
-    private CrawlDataDAO crawlDataDAO;
+    private UserDAO userDAO = UserDAO.getInstance();
+
+    private PageDAO pageDAO = PageDAO.getInstance();
+
+    private ReviewDAO reviewDAO = ReviewDAO.getInstance();
+
 
     public CrawlerManager() {
-        crawlDataDAO = CrawlDataDAOImpl.getInstance();
-
+        loadUser();
+        loadPages();
+        loadReviews();
+        calculateUserProfile();
     }
 
     private int id = 0;
+
     public static CrawlerManager getInstance() {
         return INSTANCE;
     }
 
-    private void loadZipFile(String url, BiConsumer<ZipInputStream ,ZipEntry> consumer) {
+    private void loadZipFile(String url, BiConsumer<ZipInputStream, ZipEntry> consumer) {
         try {
-            ZipInputStream zipInputStream = new ZipInputStream(new BufferedInputStream(new URL(url).openStream()));
-            for (ZipEntry zipEntry = zipInputStream.getNextEntry(); zipEntry == null; zipEntry = zipInputStream.getNextEntry()) {
-                if(!zipEntry.getName().endsWith("html")){
+            ZipInputStream zipInputStream = new ZipInputStream(new URL(url).openStream());
+            for (ZipEntry zipEntry = zipInputStream.getNextEntry(); ; zipEntry = zipInputStream.getNextEntry()) {
+                if (zipEntry == null) {
+                    break;
+                }
+                if (!zipEntry.getName().endsWith("html")) {
                     continue;
                 }
-                consumer.accept(zipInputStream,zipEntry);
+                consumer.accept(zipInputStream, zipEntry);
             }
+            zipInputStream.close();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void loadUser(){
-        byte[] buffer = new byte[1024];
-        loadZipFile(USER_URL,(ZipInputStream zis, ZipEntry entry)->{
+    private void loadUser() {
+        byte[] buffer = new byte[102400];
+        loadZipFile(USER_URL, (ZipInputStream zis, ZipEntry entry) -> {
             User user = new User();
-            user.setId(entry.getName().substring(0,entry.getName().indexOf(".html")));
+            user.setId(entry.getName().substring(entry.getName().lastIndexOf("/") + 1, entry.getName().indexOf(".html")));
             try {
                 StringBuilder sb = new StringBuilder();
-                for (int size = zis.read(buffer); size == 0; size = zis.read(buffer)){
-                    sb.append(new String(buffer));
+                int count = 0;
+                while (zis.available() > 0) {
+                    count = zis.read(buffer);
+                    if (count == -1) {
+                        continue;
+                    }
+                    sb.append(new String(Arrays.copyOf(buffer, count)));
                 }
                 Document jsoup = Jsoup.parse(sb.toString());
                 List<Element> links = jsoup.body().getElementsByTag("a");
-                List<String> pages = links.stream().map(l->l.attr("href")).map(s->s.substring(s.lastIndexOf("/")+1,s.lastIndexOf("."))).collect(Collectors.toList());
-
-            }catch (IOException e){
+                List<String> pages = links.stream().map(l -> l.attr("href")).map(s -> s.substring(s.lastIndexOf("/") + 1, s.lastIndexOf("."))).collect(Collectors.toList());
+                user.setViewedSite(pages);
+                userDAO.save(user);
+            } catch (IOException e) {
                 e.printStackTrace();
             }
 
         });
     }
 
-    private void loadPages(){
+    private void loadPages() {
+        byte[] buffer = new byte[102400];
+        loadZipFile(PAGE_URL, (ZipInputStream zis, ZipEntry entry) -> {
+            Page page = new Page();
+            page.setId(entry.getName().substring(entry.getName().lastIndexOf("/") + 1, entry.getName().indexOf(".html")));
+            try {
+                StringBuilder sb = new StringBuilder();
+                int count = 0;
+                while (zis.available() > 0) {
+                    count = zis.read(buffer);
+                    if (count == -1) {
+                        continue;
+                    }
+                    sb.append(new String(Arrays.copyOf(buffer, count)));
+                }
+                Document jsoup = Jsoup.parse(sb.toString());
+                List<Element> links = jsoup.body().getElementsByTag("a");
+                List<String> reviews = links.stream()
+                        .map(l -> l.attr("href"))
+                        .filter(l -> l.endsWith(".html"))
+                        .map(s -> s.substring(s.lastIndexOf("/") + 1, s.lastIndexOf(".")))
+                        .map(s -> s + "-" + page.getId())
+                        .collect(Collectors.toList());
+                page.setReviewsIds(reviews);
+                pageDAO.save(page);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
+        });
     }
 
-    private void loadReviews(){
+    private void loadReviews() {
+        byte[] buffer = new byte[102400];
+        loadZipFile(REVIEW_URL, (ZipInputStream zis, ZipEntry entry) -> {
+            Review review = new Review();
+            review.setId(entry.getName().substring(entry.getName().lastIndexOf("/") + 1, entry.getName().indexOf(".html")));
+            try {
+                StringBuilder sb = new StringBuilder();
+                int count = 0;
+                while (zis.available() > 0) {
+                    count = zis.read(buffer);
+                    if (count == -1) {
+                        continue;
+                    }
+                    sb.append(new String(Arrays.copyOf(buffer, count)));
+                }
+                Document jsoup = Jsoup.parse(sb.toString());
+                String filename = entry.getName();
+                String userId = filename.substring(filename.lastIndexOf("/") + 1, filename.lastIndexOf("-"));
+                String pageId = filename.substring(filename.lastIndexOf("-") + 1, filename.lastIndexOf(".html"));
+                User user = userDAO.getById(userId);
+                if (user.getReviews() == null) {
+                    user.setReviews(new ArrayList<>());
+                }
+                user.getReviews().add(review.getId());
+                userDAO.update(user);
+                review.setContent(jsoup.body().text());
+                review.setUserId(userId);
+                review.setPageId(pageId);
+                Map<String, String> metadata = jsoup.head().getElementsByTag("meta").stream().map(e -> new Map.Entry<String, String>() {
+                    @Override
+                    public String getKey() {
+                        return e.attr("name");
+                    }
 
+                    @Override
+                    public String getValue() {
+                        return e.attr("content");
+                    }
+
+                    @Override
+                    public String setValue(String value) {
+                        return null;
+                    }
+                }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                review.setSummary(metadata.get("summary"));
+                review.setScore(Double.parseDouble(metadata.get("score")));
+                int helpful = Integer.parseInt(metadata.get("helpfulness").substring(0, metadata.get("helpfulness").lastIndexOf("/")));
+                int helpless = Integer.parseInt(metadata.get("helpfulness").substring(metadata.get("helpfulness").lastIndexOf("/") + 1));
+                review.setHelpful(helpful);
+                review.setHelpless(helpless);
+                reviewDAO.save(review);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void calculateUserProfile() {
+        List<User> userList = userDAO.findAllUsers();
+        for (User u : userList) {
+            List<Review> reviews = reviewDAO.findByUserId(u.getId());
+            u.setThumbsFromOthers(reviews.stream().mapToInt(r -> r.getHelpful() + r.getHelpless()).sum());
+            u.setHelpful(((double) reviews.stream().mapToInt(Review::getHelpful).sum()) / u.getThumbsFromOthers());
+            u.setScoreAvg(reviews.stream().mapToDouble(Review::getScore).sum() / u.getReviews().size());
+            userDAO.update(u);
+        }
+    }
+
+    public static void main(String[] args) {
+        CrawlerManager crawlerManager = new CrawlerManager();
+        crawlerManager.loadReviews();
     }
 
 }

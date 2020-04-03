@@ -4,6 +4,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
 
 public abstract class AbstractDAO {
 
@@ -15,14 +16,14 @@ public abstract class AbstractDAO {
 
     protected MongoDatabase database;
 
-    protected MongoCollection collection;
+    protected MongoCollection<Document> collection;
 
     public AbstractDAO(String collectionName){
         mongoClient = MongoClients.create("mongodb://localhost:27017");
         database = mongoClient.getDatabase(DB_NAME);
         collection = database.getCollection(collectionName);
         this.collectionName = collectionName;
-//        collection.drop();
+        collection.drop();
     }
 
 
