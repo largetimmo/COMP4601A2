@@ -56,7 +56,7 @@ public class SDAController {
 
         table += "<table><tr>" +
                 "<th>User</th>" +
-                "<th>Ave Score</th>" +
+                "<th>Avg Score</th>" +
                 "<th>No. reviews</th>" +
                 "<th>positive review from other user</th>" +
                 "<th>negative review from other user</th>" +
