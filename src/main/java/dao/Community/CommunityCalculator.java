@@ -4,6 +4,7 @@ import dao.modal.User;
 
 import java.io.*;
 import java.lang.reflect.Array;
+import java.security.cert.Certificate;
 import java.util.*;
 
 public class CommunityCalculator {
@@ -28,7 +29,7 @@ public class CommunityCalculator {
     /*
      * This is where your implementation goes
      */
-    private void algorithm() throws IOException {
+    public void algorithm() throws IOException {
         List<CUser> c = new ArrayList<>();
         //decide position k and add it to c
         for (int i=0;i<no_clusters;i++){
@@ -107,20 +108,41 @@ public class CommunityCalculator {
         user_count++;
     }
 
-    private void addUser(User user){
+    public void addUser(User user){
         ArrayList<Double> d = generateUserFeatures(user);
         addUserHelper(user.getId(),d);
     }
 
-    private ArrayList<CUser> getAllUsersInCluster(String name){
-        int cluster = getClusterByUserName(name);
-        ArrayList<CUser> cu = new ArrayList<>();
-        for (CUser u: users){
-            if (u.cluster == cluster){
+    private ArrayList<User> getAllUsersInCluster(User u){
+        int cluster = getClusterByUserName(u.getId());
+        ArrayList<User> cu = new ArrayList<>();
+        for (CUser u1: users){
+            if (u1.cluster == cluster){
                 cu.add(u);
             }
         }
         return cu;
+    }
+
+
+    public ArrayList<String> getAllUsersNameInCluster(int i){
+        ArrayList<String > temp = new ArrayList<>();
+        for (CUser u: users){
+            if (u.cluster == i){
+                temp.add(u.name);
+            }
+        }
+        return temp;
+    }
+
+    public int getBiggestClusterSize(){
+        ArrayList<Integer> size = new ArrayList<>();
+        size.add(getAllUsersNameInCluster(0).size());
+        size.add(getAllUsersNameInCluster(1).size());
+        size.add(getAllUsersNameInCluster(2).size());
+        size.add(getAllUsersNameInCluster(3).size());
+        size.add(getAllUsersNameInCluster(4).size());
+        return Collections.max(size);
     }
 
     private ArrayList<Double> generateUserFeatures(User user){
