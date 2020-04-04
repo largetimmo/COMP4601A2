@@ -15,13 +15,11 @@ import javax.ws.rs.core.MediaType;
 @Path("/sda")
 public class SDAController {
     private static boolean context;
-    UserDAO userd;
 
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
     public SDAController() throws IOException {
-        context = false;
-        userd = new UserDAO();
+        context = true;
         System.out.println(context+"--------------------------------------------------------");
     }
 
@@ -34,7 +32,7 @@ public class SDAController {
     @Path("context")
     @Produces(MediaType.TEXT_HTML)
     public String getContext(){
-
+        UserDAO userd = new UserDAO();
         List<User> users = userd.findAllUsers();
 
         String table = "<!DOCTYPE html>\n" +
@@ -274,6 +272,7 @@ public class SDAController {
 
 
         if (context){
+            UserDAO userd = new UserDAO();
             List<User> users = userd.findAllUsers();
 
             CommunityCalculator cc = new CommunityCalculator(users.size());

@@ -207,24 +207,19 @@ public class CommunityCalculator {
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
-        UserDAO userd = new UserDAO();
-        List<User> users = userd.findAllUsers();
-
-        CommunityCalculator cc = new CommunityCalculator(users.size());
-        for (User user : users) {
-            cc.addUser(user);
-        }
-        cc.algorithm();
-        System.out.println(cc.getClusterByUserName(users.get(1).getId()));
-        ArrayList<CUser> temp = cc.getAllUsersInCluster(users.get(1).getId());
-//        for (CUser c:temp){
-//            System.out.println(c.name);
-//            System.out.println(c.cluster);
-//            for (Double d:c.features){
-//                System.out.println();
-//                System.out.print(d+" ");
-//                System.out.println();
-//            }
+//        UserDAO userd = UserDAO.getInstance();
+//        List<User> users = userd.findAllUsers();
+//
+//        CommunityCalculator cc = new CommunityCalculator(users.size());
+//        for (User user : users) {
+//            cc.addUser(user);
+//        }
+//        cc.algorithm();
+//        System.out.println(cc.getClusterByUserName(users.get(1).getId()));
+//        ArrayList<User> temp = cc.getAllUsersInCluster(users.get(1));
+//        for (User c:temp){
+//            System.out.println(c.getId());
+//            System.out.println(c.getPositive());
 //        }
     }
 
