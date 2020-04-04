@@ -123,6 +123,7 @@ public class CrawlerManager {
                         .map(s -> s + "-" + page.getId())
                         .collect(Collectors.toList());
                 page.setReviewsIds(reviews);
+                page.setContent(jsoup.body().toString());
                 pageDAO.save(page);
             } catch (IOException e) {
                 e.printStackTrace();

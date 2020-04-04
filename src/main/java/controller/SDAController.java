@@ -1,28 +1,33 @@
 package controller;
 
 import dao.Community.CommunityCalculator;
+import dao.impl.PageDAO;
 import dao.impl.UserDAO;
 import dao.modal.User;
+import service.Config;
+import service.UserPrediction;
 
 import javax.ws.rs.*;
 import java.awt.*;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import javax.ws.rs.core.MediaType;
 
 @Path("/sda")
 public class SDAController {
-    private static boolean context;
-    UserDAO userd;
+    UserDAO userd = UserDAO.getInstance();
+
+    PageDAO pageDAO = PageDAO.getInstance();
+
+    UserPrediction userPrediction = UserPrediction.getInstance();
 
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
     public SDAController() throws IOException {
-        context = false;
-        userd = new UserDAO();
-        System.out.println(context+"--------------------------------------------------------");
     }
 
     @GET
@@ -81,7 +86,7 @@ public class SDAController {
                     "</tr>";
         }
         table += "</table></body></html>";
-        context = true;
+        Config.context = true;
         return table;
     }
 
@@ -273,7 +278,7 @@ public class SDAController {
                 "</tr>";
 
 
-        if (context){
+        if (Config.context){
             List<User> users = userd.findAllUsers();
 
             CommunityCalculator cc = new CommunityCalculator(users.size());
@@ -317,4 +322,23 @@ public class SDAController {
     public String getAd(@PathParam("category") String category){
         return "";
     }
+
+    @GET
+    @Path("/fetch/{user}/{page}")
+    @Produces(MediaType.TEXT_HTML)
+    public String getAd(@PathParam("user") String userId,@PathParam("page")String pageId){
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("<html><head></head><body>");
+        stringBuilder.append("</body></html>");
+        stringBuilder.append(pageDAO.getById(pageId).getContent());
+        stringBuilder.append("--------");
+        Map<String,Double> result = userPrediction.predictionUser(userd.getById(userId));
+        String maxId =  result.entrySet().stream().filter(e->!e.getKey().equals(pageId)).max(Comparator.comparingDouble(Map.Entry::getValue)).get().getKey();
+        stringBuilder.append(pageDAO.getById(maxId).getContent());
+        stringBuilder.append(maxId);
+        stringBuilder.append("</body></html>");
+        return stringBuilder.toString();
+    }
+
+
 }

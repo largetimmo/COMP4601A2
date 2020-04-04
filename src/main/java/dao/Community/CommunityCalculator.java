@@ -113,7 +113,7 @@ public class CommunityCalculator {
         addUserHelper(user.getId(),d);
     }
 
-    private ArrayList<User> getAllUsersInCluster(User u){
+    public ArrayList<User> getAllUsersInCluster(User u){
         int cluster = getClusterByUserName(u.getId());
         ArrayList<User> cu = new ArrayList<>();
         for (CUser u1: users){
@@ -216,7 +216,7 @@ public class CommunityCalculator {
         }
         cc.algorithm();
         System.out.println(cc.getClusterByUserName(users.get(1).getId()));
-        ArrayList<CUser> temp = cc.getAllUsersInCluster(users.get(1).getId());
+//        ArrayList<CUser> temp = cc.getAllUsersInCluster(users.get(1).getId());
 //        for (CUser c:temp){
 //            System.out.println(c.name);
 //            System.out.println(c.cluster);
