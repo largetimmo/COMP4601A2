@@ -15,6 +15,7 @@ public class CommunityCalculator {
     private int no_clusters = 0;
     private int user_count = 0;
     private double ss = 0.0;
+    private ArrayList<User> allUsers;
 
     /*
      * Constructor that reads the data in from a file.
@@ -25,6 +26,7 @@ public class CommunityCalculator {
         this.no_clusters = no_clusters;
         this.no_users = noUsers;
         this.users = new CUser[noUsers];
+        allUsers = new ArrayList<>();
     }
 
     /*
@@ -42,11 +44,6 @@ public class CommunityCalculator {
             c.add(temp);
         }
 
-
-        for (int i = 0; i < no_users; i++) {
-
-            //System.out.println(users[i].toString());
-        }
         while (changed) {
             // Your code here
             changed = false;
@@ -126,17 +123,43 @@ public class CommunityCalculator {
     public void addUser(User user){
         ArrayList<Double> d = generateUserFeatures(user);
         addUserHelper(user.getId(),d);
+        allUsers.add(user);
     }
 
     public ArrayList<User> getAllUsersInCluster(User u){
         int cluster = getClusterByUserName(u.getId());
-        ArrayList<User> cu = new ArrayList<>();
+        ArrayList<String> cusers = new ArrayList<>();
         for (CUser u1: users){
             if (u1.cluster == cluster){
-                cu.add(u);
+                cusers.add(u1.name);
             }
         }
-        return cu;
+
+        ArrayList<User> returnList = new ArrayList<>();
+        for (User u1: allUsers){
+            if (cusers.contains(u1.getId())){
+                returnList.add(u1);
+            }
+        }
+        return returnList;
+    }
+
+    public ArrayList<User> getAllUsersInClusterById(int i){
+        int cluster = i;
+        ArrayList<String> cusers = new ArrayList<>();
+        for (CUser u1: users){
+            if (u1.cluster == cluster){
+                cusers.add(u1.name);
+            }
+        }
+
+        ArrayList<User> returnList = new ArrayList<>();
+        for (User u1: allUsers){
+            if (cusers.contains(u1.getId())){
+                returnList.add(u1);
+            }
+        }
+        return returnList;
     }
 
 
