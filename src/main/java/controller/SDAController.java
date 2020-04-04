@@ -39,7 +39,6 @@ public class SDAController {
     @Path("context")
     @Produces(MediaType.TEXT_HTML)
     public String getContext(){
-        UserDAO userd = new UserDAO();
         List<User> users = userd.findAllUsers();
 
         String table = "<!DOCTYPE html>\n" +
