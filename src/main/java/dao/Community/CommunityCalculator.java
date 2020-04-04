@@ -12,16 +12,17 @@ public class CommunityCalculator {
     private CUser[] users;
     private int no_features=10;
     private boolean changed;
-    private int no_clusters = 5;
+    private int no_clusters = 0;
     private int user_count = 0;
+    private double ss = 0.0;
 
     /*
      * Constructor that reads the data in from a file.
      * You must specify the number of clusters.
      */
-    public CommunityCalculator(int noUsers){
+    public CommunityCalculator(int noUsers,int no_clusters){
         changed = true;
-
+        this.no_clusters = no_clusters;
         this.no_users = noUsers;
         this.users = new CUser[noUsers];
     }
@@ -29,7 +30,7 @@ public class CommunityCalculator {
     /*
      * This is where your implementation goes
      */
-    public void algorithm() throws IOException {
+    public void algorithm() {
         List<CUser> c = new ArrayList<>();
         //decide position k and add it to c
         for (int i=0;i<no_clusters;i++){
@@ -44,7 +45,7 @@ public class CommunityCalculator {
 
         for (int i = 0; i < no_users; i++) {
 
-            System.out.println(users[i].toString());
+            //System.out.println(users[i].toString());
         }
         while (changed) {
             // Your code here
@@ -87,20 +88,34 @@ public class CommunityCalculator {
             }
             changed = Arrays.stream(users).anyMatch(CUser::changed);
         }
+        int tempCount = 0;
         for(int i = 0; i < c.size();i++){
+            ArrayList<Double> distances = new ArrayList<>();
             double totalDistance = 0d;
             int count = 0;
             for(int j =0 ; j< no_users ; j++){
                 if(users[j].cluster == i){
                     totalDistance += distance(users[j],c.get(i));
+                    distances.add(distance(users[j],c.get(i)));
                     count++;
                 }
             }
-            System.out.println("Cluster: "+i+" Total distance:"+totalDistance+", Total: "+count);
+            Double mean = totalDistance/count;
+
+            for (int h=0;h<distances.size();h++){
+                ss+=Math.pow((distances.get(h)-mean),2);
+                tempCount++;
+            }
+            //System.out.println("Cluster: "+i+" Total distance:"+totalDistance+", Total: "+count + " SS is: "+ss);
         }
+        ss /= tempCount;
     }
 
-    private void addUserHelper(String name,ArrayList<Double> features){
+    public double getSs() {
+        return ss;
+    }
+
+    private void addUserHelper(String name, ArrayList<Double> features){
         users[user_count] = new CUser(name,no_features,no_clusters);
         for (int i = 0;i<no_features;i++){
             users[user_count].features[i] = features.get(i);
@@ -137,11 +152,14 @@ public class CommunityCalculator {
 
     public int getBiggestClusterSize(){
         ArrayList<Integer> size = new ArrayList<>();
-        size.add(getAllUsersNameInCluster(0).size());
-        size.add(getAllUsersNameInCluster(1).size());
-        size.add(getAllUsersNameInCluster(2).size());
-        size.add(getAllUsersNameInCluster(3).size());
-        size.add(getAllUsersNameInCluster(4).size());
+        for (int i=0;i<no_clusters;i++){
+            size.add(getAllUsersNameInCluster(i).size());
+        }
+//        size.add(getAllUsersNameInCluster(0).size());
+//        size.add(getAllUsersNameInCluster(1).size());
+//        size.add(getAllUsersNameInCluster(2).size());
+//        size.add(getAllUsersNameInCluster(3).size());
+//        size.add(getAllUsersNameInCluster(4).size());
         return Collections.max(size);
     }
 
@@ -150,17 +168,6 @@ public class CommunityCalculator {
         //-> helpful (1) -> very positive sentiment(1433) -> positive sentiment (5045)
         //->neutral (3360) -> nagative (8233) -> very negative (337)
         ArrayList<Double> temp = new ArrayList<>();
-//        ArrayList<Double> generator = new ArrayList<>();
-//        generator.add((double) 5);
-//        generator.add((double) 478);
-//        generator.add((double) 8000);
-//        generator.add((double) 8000);
-//        generator.add((double) 1);
-//        generator.add((double) 1433);
-//        generator.add((double) 5045);
-//        generator.add((double) 3360);
-//        generator.add((double) 8233);
-//        generator.add((double) 337);
 
         temp.add(user.getScoreAvg()*10/5);
         temp.add((double) ((user.getReviews().size()*10)/478));
@@ -199,33 +206,10 @@ public class CommunityCalculator {
     }
 
     public static void main(String[] args) throws IOException {
-//        try {
-//            int numberOfClusters = 2;
-//            String fileName = System.getProperty("user.dir")+"\\KNN-1.txt";
-//            Kmeans knn = new Kmeans(numberOfClusters, new File(fileName));
-//            knn.algorithm();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-        UserDAO userd = new UserDAO();
-        List<User> users = userd.findAllUsers();
 
-        CommunityCalculator cc = new CommunityCalculator(users.size());
-        for (User user : users) {
-            cc.addUser(user);
-        }
-        cc.algorithm();
-        System.out.println(cc.getClusterByUserName(users.get(1).getId()));
-//        ArrayList<CUser> temp = cc.getAllUsersInCluster(users.get(1).getId());
-//        for (CUser c:temp){
-//            System.out.println(c.name);
-//            System.out.println(c.cluster);
-//            for (Double d:c.features){
-//                System.out.println();
-//                System.out.print(d+" ");
-//                System.out.println();
-//            }
-//        }
+//        UserDAO userd = UserDAO.getInstance();
+//        List<User> users = userd.findAllUsers();
+//        System.out.println("optimalk: "+k);
     }
 
     // Private class for representing user

@@ -12,6 +12,6 @@ public class StartUpManager {
     }
 
     private void startCrawler() {
-//        CrawlerManager.getInstance();
+       // CrawlerManager.getInstance();
     }
 }
