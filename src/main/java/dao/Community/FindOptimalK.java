@@ -28,7 +28,7 @@ public class FindOptimalK {
         List<User> users = userDAO.findAllUsers();
         ArrayList<Double> findK = new ArrayList<>();
         int optimalK = 0;
-        for (int i=0;i<users.size();i++){
+        for (int i=0;i<100;i++){
             CommunityCalculator cc = new CommunityCalculator(users.size(),i+1);
             for (User user : users) {
                 cc.addUser(user);
