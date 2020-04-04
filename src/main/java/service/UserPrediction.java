@@ -47,7 +47,7 @@ public class UserPrediction {
         List<Page> pages = pageDAO.findAllPages();
 
     }
-    public Double userSimilarity(User user1, User user2){
+    public Double userSimilarity(User user1, User user2,List<Review> user1Review, List<Review> user2Review){
         if(user1.equals(user2)){
             return 1d;
         }
@@ -61,16 +61,14 @@ public class UserPrediction {
         if(commonSite.size() == 0){
             return NO_VALUE;
         }
-        List<Review> firstUserReview = reviewDAO.findByUserId(user1.getId());
-        List<Review> secondUserReview = reviewDAO.findByUserId(user2.getId());
-        double firstUserAvg =  firstUserReview.stream().filter(r->commonSite.contains(r.getPageId())).mapToDouble(Review::getScore).sum()/commonSite.size();
-        double secondUserAvg =  secondUserReview.stream().filter(r->commonSite.contains(r.getPageId())).mapToDouble(Review::getScore).sum()/commonSite.size();
+        double firstUserAvg =  user1Review.stream().filter(r->commonSite.contains(r.getPageId())).mapToDouble(Review::getScore).sum()/commonSite.size();
+        double secondUserAvg =  user2Review.stream().filter(r->commonSite.contains(r.getPageId())).mapToDouble(Review::getScore).sum()/commonSite.size();
         List<Double> firstUserDiff = new ArrayList<>();
         List<Double> secondUserDiff = new ArrayList<>();
-        firstUserReview.stream().filter(r->commonSite.contains(r.getPageId())).mapToDouble(Review::getScore).forEach(s->{
+        user1Review.stream().filter(r->commonSite.contains(r.getPageId())).mapToDouble(Review::getScore).forEach(s->{
             firstUserDiff.add(s-firstUserAvg);
         });
-        secondUserReview.stream().filter(r->commonSite.contains(r.getPageId())).mapToDouble(Review::getScore).forEach(s->{
+        user2Review.stream().filter(r->commonSite.contains(r.getPageId())).mapToDouble(Review::getScore).forEach(s->{
             secondUserDiff.add(s-secondUserAvg);
         });
 
@@ -82,25 +80,26 @@ public class UserPrediction {
     public Map<String,Double> predictionUser(User user1){
         Map<String,Double> result = new HashMap<>();//item-->result
         double userAvg = user1.getScoreAvg();
-
-        pageDAO.findAllPages().stream().filter(p->!user1.getViewedSite().contains(p.getId())).forEach(p->{
+        List<User> communityMember = communityCalculator.getAllUsersInCluster(user1);
+        Map<String,List<Review>> reviewCache = new HashMap<>();
+        communityMember.parallelStream().forEach(u-> reviewCache.put(u.getId(),reviewDAO.findByUserId(u.getId())));
+        pageDAO.findAllPages().stream().parallel().filter(p->!user1.getViewedSite().contains(p.getId())).forEach(p->{
             //Find neighbours
-            List<User> neighbours = communityCalculator.getAllUsersInCluster(user1)
-                    .stream()
+            List<User> neighbours = communityMember.stream()
                     .filter(u->!u.getId().equals(user1.getId())) //not self
                     .filter(u->u.getViewedSite().contains(p.getId()))  //has viewed the page p
-                    .filter(u->userSimilarity(user1,u) > 0)//sim > 0
+                    .filter(u->userSimilarity(user1,u,reviewCache.get(user1.getId()),reviewCache.get(u.getId())) > 0)//sim > 0
                     .collect(Collectors.toList());
 
             double upper = 0;
             double lower = 0;
             for(User n : neighbours){
-                double sim = userSimilarity(user1,n);
+                double sim = userSimilarity(user1,n,reviewCache.get(user1.getId()),reviewCache.get(n.getId()));
                 double secondUserAvg = n.getScoreAvg();
-                upper+= sim* reviewDAO.findByUserId(n.getId()).stream().mapToDouble(Review::getScore).map(k->k-secondUserAvg).sum();
+                upper+= sim* reviewCache.get(n.getId()).stream().mapToDouble(Review::getScore).map(k->k-secondUserAvg).sum();
                 lower+=secondUserAvg;
             }
-
+            System.out.println("finish");
             result.put(p.getId(),userAvg+upper/lower);
         });
         return result;
