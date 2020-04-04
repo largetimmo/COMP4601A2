@@ -1,6 +1,7 @@
 package controller;
 
 import dao.Community.CommunityCalculator;
+import dao.Community.FindOptimalK;
 import dao.impl.PageDAO;
 import dao.impl.UserDAO;
 import dao.modal.User;
@@ -268,39 +269,48 @@ public class SDAController {
                 "<body>\n" +
                 "<h2>Community(Clusters)</h2>\n";
 
-        table += "<table><tr>" +
-                "<th>1</th>" +
-                "<th>2</th>" +
-                "<th>3</th>" +
-                "<th>4</th>" +
-                "<th>5</th>" +
-                "</tr>";
-
+        table += "<table><tr>";
+        for (int i=0;i<Config.optimalK;i++){
+            table+="<th>"+(i+1)+"</th>";
+        }
+        table+="</tr>";
 
         if (Config.context){
             List<User> users = userd.findAllUsers();
+            System.out.println(Config.optimalK+"optimal k ---------------------------------------------------------");
 
-            CommunityCalculator cc = new CommunityCalculator(users.size());
+            CommunityCalculator cc = new CommunityCalculator(users.size(),Config.optimalK);
             for (User user : users) {
                 cc.addUser(user);
             }
             cc.algorithm();
-            ArrayList<String> c1 = cc.getAllUsersNameInCluster(0);
-            ArrayList<String> c2 = cc.getAllUsersNameInCluster(1);
-            ArrayList<String> c3 = cc.getAllUsersNameInCluster(2);
-            ArrayList<String> c4 = cc.getAllUsersNameInCluster(3);
-            ArrayList<String> c5 = cc.getAllUsersNameInCluster(4);
+//            ArrayList<String> c1 = cc.getAllUsersNameInCluster(0);
+//            ArrayList<String> c2 = cc.getAllUsersNameInCluster(1);
+//            ArrayList<String> c3 = cc.getAllUsersNameInCluster(2);
+//            ArrayList<String> c4 = cc.getAllUsersNameInCluster(3);
+//            ArrayList<String> c5 = cc.getAllUsersNameInCluster(4);
             int max = cc.getBiggestClusterSize();
+
             for (int i=0;i<max;i++){
-                table += addTable(i,c1);
-                table += addTable(i,c2);
-                table += addTable(i,c3);
-                table += addTable(i,c4);
-                table += addTable(i,c5);
+                for (int j=0;j<Config.optimalK;j++){
+                    ArrayList<String> temp = cc.getAllUsersNameInCluster(j);
+                    table+=addTable(i,temp);
+                }
                 table += "</tr>";
             }
             table += "</table></body></html>";
             return table;
+
+//            for (int i=0;i<max;i++){
+//                table += addTable(i,c1);
+//                table += addTable(i,c2);
+//                table += addTable(i,c3);
+//                table += addTable(i,c4);
+//                table += addTable(i,c5);
+//                table += "</tr>";
+//            }
+//            table += "</table></body></html>";
+//            return table;
         }
         return error;
     }
