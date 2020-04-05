@@ -18,6 +18,16 @@ public class Review {
 
     private String summary;
 
+    private Integer veryPositive;
+
+    private Integer positive;
+
+    private Integer natural;
+
+    private Integer negative;
+
+    private Integer veryNegative;
+
     public String getId() {
         return id;
     }
@@ -80,5 +90,45 @@ public class Review {
 
     public void setSummary(String summary) {
         this.summary = summary;
+    }
+
+    public Integer getVeryPositive() {
+        return veryPositive;
+    }
+
+    public void setVeryPositive(Integer veryPositive) {
+        this.veryPositive = veryPositive;
+    }
+
+    public Integer getPositive() {
+        return positive;
+    }
+
+    public void setPositive(Integer positive) {
+        this.positive = positive;
+    }
+
+    public Integer getNatural() {
+        return natural;
+    }
+
+    public void setNatural(Integer natural) {
+        this.natural = natural;
+    }
+
+    public Integer getNegative() {
+        return negative;
+    }
+
+    public void setNegative(Integer negative) {
+        this.negative = negative;
+    }
+
+    public Integer getVeryNegative() {
+        return veryNegative;
+    }
+
+    public void setVeryNegative(Integer veryNegative) {
+        this.veryNegative = veryNegative;
     }
 }
