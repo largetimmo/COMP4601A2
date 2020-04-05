@@ -49,6 +49,11 @@ public class UserDAO extends AbstractDAO implements MongoDAO<User> {
         document.put("scoreAvg",entity.getScoreAvg());
         document.put("helpful",entity.getHelpful());
         document.put("thumbsFromOthers",entity.getThumbsFromOthers());
+        document.put("veryPositive",entity.getVeryPositive());
+        document.put("positive",entity.getPositive());
+        document.put("natural",entity.getNatural());
+        document.put("negative",entity.getNegative());
+        document.put("veryNegative",entity.getVeryNegative());
         return document;
     }
 
@@ -74,6 +79,12 @@ public class UserDAO extends AbstractDAO implements MongoDAO<User> {
         if(document.get("thumbsFromOthers")!=null){
             user.setThumbsFromOthers(document.getInteger("thumbsFromOthers"));
         }
+        user.setVeryPositive(document.getInteger("veryPositive"));
+        user.setPositive(document.getInteger("positive"));
+        user.setNatural(document.getInteger("natural"));
+        user.setNegative(document.getInteger("negative"));
+        user.setVeryNegative(document.getInteger("veryNegative"));
+
 
         return user;
     }

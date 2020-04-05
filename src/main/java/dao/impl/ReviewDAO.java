@@ -44,6 +44,11 @@ public class ReviewDAO extends AbstractDAO implements MongoDAO<Review> {
         document.put("helpless",entity.getHelpless());
         document.put("score",entity.getScore());
         document.put("summary",entity.getSummary());
+        document.put("veryPositive",entity.getVeryPositive());
+        document.put("positive",entity.getPositive());
+        document.put("natural",entity.getNatural());
+        document.put("negative",entity.getNegative());
+        document.put("veryNegative",entity.getVeryNegative());
         return document;
     }
 
@@ -61,6 +66,11 @@ public class ReviewDAO extends AbstractDAO implements MongoDAO<Review> {
         review.setHelpless(document.getInteger("helpless"));
         review.setScore(document.getDouble("score"));
         review.setSummary(document.getString("summary"));
+        review.setVeryPositive(document.getInteger("veryPositive"));
+        review.setPositive(document.getInteger("positive"));
+        review.setNatural(document.getInteger("natural"));
+        review.setNegative(document.getInteger("negative"));
+        review.setVeryNegative(document.getInteger("veryNegative"));
         return review;
     }
 }

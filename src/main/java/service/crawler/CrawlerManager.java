@@ -11,11 +11,15 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -24,6 +28,8 @@ public class CrawlerManager {
     private static final String REVIEW_URL = "https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4601/assignments/archive/reviews.zip ";
     private static final String USER_URL = "https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4601/assignments/archive/users.zip";
     private static final String PAGE_URL = "https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4601/assignments/archive/pages.zip";
+    private static final String SENTIMENT_IDV1 = "https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4601/assignments/archive/sentiment-reviews-individual.csv";
+    private static final String SENTIMENT_IDV2 = "https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4601/assignments/archive/sentiment-reviews-individual2.csv";
 
     private static final CrawlerManager INSTANCE = new CrawlerManager();
 
@@ -117,6 +123,7 @@ public class CrawlerManager {
                         .map(s -> s + "-" + page.getId())
                         .collect(Collectors.toList());
                 page.setReviewsIds(reviews);
+                page.setContent(jsoup.body().toString());
                 pageDAO.save(page);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -127,6 +134,20 @@ public class CrawlerManager {
 
     private void loadReviews() {
         byte[] buffer = new byte[102400];
+        Map<String, String> sentiment = new HashMap<>();
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(new URL(SENTIMENT_IDV1).openStream()));
+            List<String> lines = br.lines().filter(s -> !s.isEmpty()).collect(Collectors.toList());
+            IntStream.range(1, lines.size()).forEach(i -> sentiment.put(lines.get(i).substring(0, lines.get(i).indexOf(",")), lines.get(i).substring(lines.get(i).indexOf(",") + 1)));
+            br.close();
+            br = new BufferedReader(new InputStreamReader(new URL(SENTIMENT_IDV2).openStream()));
+            List<String> lines2 = br.lines().filter(s -> !s.isEmpty()).collect(Collectors.toList());
+            IntStream.range(1, lines2.size()).forEach(i -> sentiment.put(lines2.get(i).substring(0, lines2.get(i).indexOf(",")), lines2.get(i).substring(lines2.get(i).indexOf(",") + 1)));
+            br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         loadZipFile(REVIEW_URL, (ZipInputStream zis, ZipEntry entry) -> {
             Review review = new Review();
             review.setId(entry.getName().substring(entry.getName().lastIndexOf("/") + 1, entry.getName().indexOf(".html")));
@@ -149,7 +170,7 @@ public class CrawlerManager {
                     user.setReviews(new ArrayList<>());
                 }
                 user.getReviews().add(review.getId());
-                userDAO.update(user);
+
                 review.setContent(jsoup.body().text());
                 review.setUserId(userId);
                 review.setPageId(pageId);
@@ -175,6 +196,40 @@ public class CrawlerManager {
                 int helpless = Integer.parseInt(metadata.get("helpfulness").substring(metadata.get("helpfulness").lastIndexOf("/") + 1));
                 review.setHelpful(helpful);
                 review.setHelpless(helpless);
+                String sentimentReview = sentiment.get(review.getId() + ".html");
+                if (sentimentReview == null || sentimentReview.isEmpty()) {
+                    System.out.println("Missing sentiment for :" + review.getId());
+                    sentimentReview = "0,0,0,0,0";
+
+                }
+                String[] sentimentArray = sentimentReview.split(",");
+                review.setVeryPositive(Integer.parseInt(sentimentArray[0]));
+                review.setPositive(Integer.parseInt(sentimentArray[1]));
+                review.setNatural(Integer.parseInt(sentimentArray[2]));
+                review.setNegative(Integer.parseInt(sentimentArray[3]));
+                review.setVeryNegative(Integer.parseInt(sentimentArray[4]));
+                if (user.getVeryPositive() == null) {
+                    user.setVeryPositive(0);
+                }
+                user.setVeryPositive(user.getVeryPositive() + review.getVeryPositive());
+                if (user.getPositive() == null) {
+                    user.setPositive(0);
+                }
+                user.setPositive(user.getPositive() + review.getPositive());
+                if (user.getNatural() == null) {
+                    user.setNatural(0);
+                }
+                user.setNatural(user.getNatural() + review.getNatural());
+                if (user.getNegative() == null) {
+                    user.setNegative(0);
+                }
+                user.setNegative(user.getNegative() + review.getNegative());
+                if (user.getVeryNegative() == null) {
+                    user.setVeryNegative(0);
+                }
+                user.setVeryNegative(user.getVeryNegative() + review.getVeryNegative());
+
+                userDAO.update(user);
                 reviewDAO.save(review);
             } catch (IOException e) {
                 e.printStackTrace();

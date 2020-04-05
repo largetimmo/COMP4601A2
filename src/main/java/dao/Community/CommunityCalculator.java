@@ -1,31 +1,38 @@
 package dao.Community;
+import dao.impl.UserDAO;
+import dao.modal.User;
+
 import java.io.*;
+import java.lang.reflect.Array;
+import java.security.cert.Certificate;
 import java.util.*;
 
 public class CommunityCalculator {
     private int no_users;
     private CUser[] users;
-    private int no_features=5;
+    private int no_features=10;
     private boolean changed;
-    private int no_clusters = 5;
+    private int no_clusters = 0;
+    private int user_count = 0;
+    private double ss = 0.0;
+    private ArrayList<User> allUsers;
 
     /*
      * Constructor that reads the data in from a file.
      * You must specify the number of clusters.
      */
-    public CommunityCalculator(int noUsers){
-
-
+    public CommunityCalculator(int noUsers,int no_clusters){
         changed = true;
-
+        this.no_clusters = no_clusters;
         this.no_users = noUsers;
         this.users = new CUser[noUsers];
+        allUsers = new ArrayList<>();
     }
 
     /*
      * This is where your implementation goes
      */
-    private void algorithm() throws IOException {
+    public void algorithm() {
         List<CUser> c = new ArrayList<>();
         //decide position k and add it to c
         for (int i=0;i<no_clusters;i++){
@@ -37,11 +44,6 @@ public class CommunityCalculator {
             c.add(temp);
         }
 
-
-        for (int i = 0; i < no_users; i++) {
-
-            System.out.println(users[i].toString());
-        }
         while (changed) {
             // Your code here
             changed = false;
@@ -83,17 +85,133 @@ public class CommunityCalculator {
             }
             changed = Arrays.stream(users).anyMatch(CUser::changed);
         }
+        int tempCount = 0;
         for(int i = 0; i < c.size();i++){
+            ArrayList<Double> distances = new ArrayList<>();
             double totalDistance = 0d;
             int count = 0;
             for(int j =0 ; j< no_users ; j++){
                 if(users[j].cluster == i){
                     totalDistance += distance(users[j],c.get(i));
+                    distances.add(distance(users[j],c.get(i)));
                     count++;
                 }
             }
-            System.out.println("Cluster: "+i+" Total distance:"+totalDistance+", Total: "+count);
+            Double mean = totalDistance/count;
+
+            for (int h=0;h<distances.size();h++){
+                ss+=Math.pow((distances.get(h)-mean),2);
+                tempCount++;
+            }
+            //System.out.println("Cluster: "+i+" Total distance:"+totalDistance+", Total: "+count + " SS is: "+ss);
         }
+        ss /= tempCount;
+    }
+
+    public double getSs() {
+        return ss;
+    }
+
+    private void addUserHelper(String name, ArrayList<Double> features){
+        users[user_count] = new CUser(name,no_features,no_clusters);
+        for (int i = 0;i<no_features;i++){
+            users[user_count].features[i] = features.get(i);
+        }
+        user_count++;
+    }
+
+    public void addUser(User user){
+        ArrayList<Double> d = generateUserFeatures(user);
+        addUserHelper(user.getId(),d);
+        allUsers.add(user);
+    }
+
+    public ArrayList<User> getAllUsersInCluster(User u){
+        int cluster = getClusterByUserName(u.getId());
+        ArrayList<String> cusers = new ArrayList<>();
+        for (CUser u1: users){
+            if (u1.cluster == cluster){
+                cusers.add(u1.name);
+            }
+        }
+
+        ArrayList<User> returnList = new ArrayList<>();
+        for (User u1: allUsers){
+            if (cusers.contains(u1.getId())){
+                returnList.add(u1);
+            }
+        }
+        return returnList;
+    }
+
+    public ArrayList<User> getAllUsersInClusterById(int i){
+        int cluster = i;
+        ArrayList<String> cusers = new ArrayList<>();
+        for (CUser u1: users){
+            if (u1.cluster == cluster){
+                cusers.add(u1.name);
+            }
+        }
+
+        ArrayList<User> returnList = new ArrayList<>();
+        for (User u1: allUsers){
+            if (cusers.contains(u1.getId())){
+                returnList.add(u1);
+            }
+        }
+        return returnList;
+    }
+
+
+    public ArrayList<String> getAllUsersNameInCluster(int i){
+        ArrayList<String > temp = new ArrayList<>();
+        for (CUser u: users){
+            if (u.cluster == i){
+                temp.add(u.name);
+            }
+        }
+        return temp;
+    }
+
+    public int getBiggestClusterSize(){
+        ArrayList<Integer> size = new ArrayList<>();
+        for (int i=0;i<no_clusters;i++){
+            size.add(getAllUsersNameInCluster(i).size());
+        }
+//        size.add(getAllUsersNameInCluster(0).size());
+//        size.add(getAllUsersNameInCluster(1).size());
+//        size.add(getAllUsersNameInCluster(2).size());
+//        size.add(getAllUsersNameInCluster(3).size());
+//        size.add(getAllUsersNameInCluster(4).size());
+        return Collections.max(size);
+    }
+
+    private ArrayList<Double> generateUserFeatures(User user){
+        //avg score (5) -> no. review (100暂定) -> positive from other (8000 暂定)-> negative from other (8000暂定)
+        //-> helpful (1) -> very positive sentiment(1433) -> positive sentiment (5045)
+        //->neutral (3360) -> nagative (8233) -> very negative (337)
+        ArrayList<Double> temp = new ArrayList<>();
+
+        temp.add(user.getScoreAvg()*10/5);
+        temp.add((double) ((user.getReviews().size()*10)/478));
+        temp.add(user.getHelpful()*user.getThumbsFromOthers()*10/8000);
+        temp.add((1-user.getHelpful())*user.getThumbsFromOthers()*10/8000);
+        temp.add(user.getHelpful()*10);
+        temp.add((double)user.getVeryPositive()*10/1433);
+        temp.add((double)user.getPositive()*10/5045);
+        temp.add((double)user.getNatural()*10/8233);
+        temp.add((double)user.getNegative()*10/8233);
+        temp.add((double)user.getVeryNegative()*10/337);
+        return temp;
+    }
+
+    public int getClusterByUserName(String name){
+        for (CUser u: users){
+            if (u.name.equals(name)){
+                return u.cluster;
+            }
+        }
+        return -1;
     }
 
     /*
@@ -110,15 +228,11 @@ public class CommunityCalculator {
         return Math.sqrt(rtn);
     }
 
-    public static void main(String[] args) {
-//        try {
-//            int numberOfClusters = 2;
-//            String fileName = System.getProperty("user.dir")+"\\KNN-1.txt";
-//            Kmeans knn = new Kmeans(numberOfClusters, new File(fileName));
-//            knn.algorithm();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+    public static void main(String[] args) throws IOException {
+
+//        UserDAO userd = UserDAO.getInstance();
+//        List<User> users = userd.findAllUsers();
+//        System.out.println("optimalk: "+k);
     }
 
     // Private class for representing user
