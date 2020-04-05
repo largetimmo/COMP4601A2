@@ -354,7 +354,7 @@ public class SDAController {
         String pageDefaultURL = "https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4601/assignments/training/pages/";
         try {
             int categoryInt = Integer.parseInt(category)-1;
-            if (1<=categoryInt&&categoryInt<=Config.optimalK){
+            if (1<=(categoryInt+1)&&(categoryInt+1)<=Config.optimalK){
                 adPrediction.CalculateAD(categoryInt);
                 ArrayList<String> pageIDs = adPrediction.getResultPageIds();
                 ArrayList<Double> pageScores = adPrediction.getResultPagesScores();
