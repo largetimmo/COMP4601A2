@@ -362,7 +362,7 @@ public class SDAController {
 //                System.out.println(pageIDs.size()+"pageIds size ---------------------------------------------------------");
 //                System.out.println(pageScores.size()+"pagescore size ---------------------------------------------------------");
 
-                if (pageIDs.size()<10){
+                if (pageIDs.size()<15){
                     for (int i=0;i<pageIDs.size();i++){
                         table += "<table><tr>" +
                                 "<th>"+pageIDs.get(i)+"</th>" +
@@ -371,7 +371,7 @@ public class SDAController {
                                 "</tr>";
                     }
                 }else {
-                    for (int i=0;i<10;i++){
+                    for (int i=0;i<15;i++){
                         table += "<table><tr>" +
                                 "<th>"+pageIDs.get(i)+"</th>" +
                                 "<th>"+pageScores.get(i)+"</th>" +
