@@ -5,6 +5,7 @@ import dao.Community.FindOptimalK;
 import dao.impl.PageDAO;
 import dao.impl.UserDAO;
 import dao.modal.User;
+import service.ADPrediction;
 import service.Config;
 import service.UserPrediction;
 
@@ -281,7 +282,7 @@ public class SDAController {
 
         if (Config.context){
             List<User> users = userd.findAllUsers();
-            System.out.println(Config.optimalK+"optimal k ---------------------------------------------------------");
+            //System.out.println(Config.optimalK+"optimal k ---------------------------------------------------------");
 
             CommunityCalculator cc = new CommunityCalculator(users.size(),Config.optimalK);
             for (User user : users) {
@@ -317,13 +318,72 @@ public class SDAController {
     @Path("advertising/{category}")
     @Produces(MediaType.TEXT_HTML)
     public String getAd(@PathParam("category") String category){
+        ADPrediction adPrediction = new ADPrediction(Config.optimalK);
+        String table = "<!DOCTYPE html>\n" +
+                "<html>\n" +
+                "<head>\n" +
+                "<style>\n" +
+                "table {\n" +
+                "  font-family: arial, sans-serif;\n" +
+                "  border-collapse: collapse;\n" +
+                "  width: 100%;\n" +
+                "display:block;\n" +
+                "    text-decoration:none;"+
+                "}\n" +
+                "\n" +
+                "td, th {\n" +
+                "  border: 1px solid #dddddd;\n" +
+                "  text-align: left;\n" +
+                "  padding: 8px;\n" +
+                "}\n" +
+                "\n" +
+                "tr:nth-child(even) {\n" +
+                "  background-color: #dddddd;\n" +
+                "}\n" +
+                "</style>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "<h2>Advertising</h2>\n";
+
+        table += "<table><tr>" +
+                "<th>Page Name</th>" +
+                "<th>Page Score</th>" +
+                "<th>Page Link</th>" +
+                "</tr>";
+
+        String pageDefaultURL = "https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4601/assignments/training/pages/";
         try {
-            int categoryInt = Integer.parseInt(category);
+            int categoryInt = Integer.parseInt(category)-1;
             if (1<=categoryInt&&categoryInt<=Config.optimalK){
+                adPrediction.CalculateAD(categoryInt);
+                ArrayList<String> pageIDs = adPrediction.getResultPageIds();
+                ArrayList<Double> pageScores = adPrediction.getResultPagesScores();
+//                System.out.println(Config.optimalK+"optimal k ---------------------------------------------------------");
+//                System.out.println(pageIDs.size()+"pageIds size ---------------------------------------------------------");
+//                System.out.println(pageScores.size()+"pagescore size ---------------------------------------------------------");
 
+                if (pageIDs.size()<10){
+                    for (int i=0;i<pageIDs.size();i++){
+                        table += "<table><tr>" +
+                                "<th>"+pageIDs.get(i)+"</th>" +
+                                "<th>"+pageScores.get(i)+"</th>" +
+                                "<th>"+("<a href=\""+pageDefaultURL+pageIDs.get(i)+".html"+"\">"+pageIDs.get(i)+"</a>")+"</th>" +
+                                "</tr>";
+                    }
+                }else {
+                    for (int i=0;i<10;i++){
+                        table += "<table><tr>" +
+                                "<th>"+pageIDs.get(i)+"</th>" +
+                                "<th>"+pageScores.get(i)+"</th>" +
+                                "<th>"+("<a href=\""+pageDefaultURL+pageIDs.get(i)+".html"+"\">"+pageIDs.get(i)+"</a>")+"</th>" +
+                                "</tr>";
+                    }
+                }
 
+                table += "</table></body></html>";
+                return table;
             }else{
-                errorInfo = "Please input an Integer From 1-"+(Config.optimalK+1)+" for \"category\""+"</h2>\n" +
+                errorInfo = "Please input an Integer From 1-"+(Config.optimalK)+" for \"category\""+"</h2>\n" +
                         "\t\t\t</div>\n" +
                         "\t\t</div>\n" +
                         "\t</div>\n" +
@@ -346,7 +406,6 @@ public class SDAController {
                     "</html>\n";
             return error+=errorInfo;
         }
-        return "";
     }
 
     @GET
