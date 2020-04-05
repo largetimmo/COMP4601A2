@@ -19,10 +19,10 @@ public class ADPrediction {
     private ArrayList<String> resultPageIds;
     private ArrayList<Double> resultPagesScores;
 
-    public ADPrediction(int optimalk){
+    public ADPrediction(int optimalk) {
         List<User> users = userDAO.findAllUsers();
-        communityCalculator = new CommunityCalculator(users.size(),optimalk);
-        for (User u:users){
+        communityCalculator = new CommunityCalculator(users.size(), optimalk);
+        for (User u : users) {
             communityCalculator.addUser(u);
             System.out.println(u.getId());
         }
@@ -39,23 +39,29 @@ public class ADPrediction {
         return resultPageIds;
     }
 
-    public void CalculateAD(int cluster){
+    public void CalculateAD(int cluster) {
         ArrayList<User> users = communityCalculator.getAllUsersInClusterById(cluster);
         ArrayList<Review> reviews = new ArrayList<>();
-        for (User u: users){
+        for (User u : users) {
             reviews.addAll(reviewDao.findByUserId(u.getId()));
         }
         Set<String> pageIds = new HashSet<>();
-        for (Review r: reviews){
+        for (Review r : reviews) {
             pageIds.add(r.getPageId());
         }
-        Map<String,Double> pageScore = new LinkedHashMap<>();
-        for (String s:pageIds){
-            pageScore.put(s,0.0);
+        Map<String, Double> pageScore = new LinkedHashMap<>();
+        for (String s : pageIds) {
+            pageScore.put(s, 0.0);
         }
-        for (Review r: reviews){
+        for (Review r : reviews) {
             Double tempScore = pageScore.get(r.getPageId());
-            pageScore.put(r.getPageId(),tempScore+r.getScore());
+            pageScore.put(r.getPageId(), tempScore + r.getScore());
+        }
+
+        for (String page : pageScore.keySet()) {
+            int amount = getReviewAmountByPageId(page, reviews);
+            pageScore.put(page, pageScore.get(page) / amount);
+
         }
 
         Object[] a = pageScore.entrySet().toArray();
@@ -74,13 +80,23 @@ public class ADPrediction {
 
     }
 
+    private int getReviewAmountByPageId(String page, ArrayList<Review> reviews) {
+        int count = 0;
+        for (Review r : reviews) {
+            if (r.getPageId().equals(page)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public static void main(String[] args) throws IOException {
-//        ADPrediction adPrediction = new ADPrediction(7);
-//        adPrediction.CalculateAD(1);
-//        ArrayList<String> pageIDs = adPrediction.getResultPageIds();
-//        ArrayList<Double> pageScores = adPrediction.getResultPagesScores();
-//        for (String s:pageIDs){
-//            System.out.println(s);
-//        }
+        ADPrediction adPrediction = new ADPrediction(7);
+        adPrediction.CalculateAD(6);
+        ArrayList<String> pageIDs = adPrediction.getResultPageIds();
+        ArrayList<Double> pageScores = adPrediction.getResultPagesScores();
+        for (int i = 0; i < pageIDs.size(); i++) {
+            System.out.println("page: " + pageIDs.get(i) + "----score" + pageScores.get(i));
+        }
     }
 }
