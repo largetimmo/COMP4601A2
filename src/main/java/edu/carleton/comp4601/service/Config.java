@@ -1,4 +1,4 @@
-package service;
+package edu.carleton.comp4601.service;
 
 public class Config {
 

@@ -1,10 +1,9 @@
-package dao.impl;
+package edu.carleton.comp4601.dao.impl;
 
 import com.mongodb.client.model.Filters;
-import dao.AbstractDAO;
-import dao.MongoDAO;
-import dao.modal.Page;
-import dao.modal.User;
+import edu.carleton.comp4601.dao.AbstractDAO;
+import edu.carleton.comp4601.dao.MongoDAO;
+import edu.carleton.comp4601.dao.modal.Page;
 import org.bson.Document;
 
 import java.util.LinkedList;

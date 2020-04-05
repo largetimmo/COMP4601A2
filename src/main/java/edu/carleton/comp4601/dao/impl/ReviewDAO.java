@@ -1,9 +1,9 @@
-package dao.impl;
+package edu.carleton.comp4601.dao.impl;
 
 import com.mongodb.client.model.Filters;
-import dao.AbstractDAO;
-import dao.MongoDAO;
-import dao.modal.Review;
+import edu.carleton.comp4601.dao.AbstractDAO;
+import edu.carleton.comp4601.dao.MongoDAO;
+import edu.carleton.comp4601.dao.modal.Review;
 import org.bson.Document;
 
 import java.util.ArrayList;

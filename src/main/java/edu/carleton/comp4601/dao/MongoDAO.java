@@ -1,9 +1,9 @@
-package dao;
+package edu.carleton.comp4601.dao;
 
 import org.bson.Document;
 
 /**
- * Base Mongo dao interface
+ * Base Mongo edu.carleton.comp4601.dao interface
  * @param <T> Entity class
  */
 

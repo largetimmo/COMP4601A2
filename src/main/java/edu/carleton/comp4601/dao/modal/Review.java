@@ -1,20 +1,22 @@
-package dao.modal;
+package edu.carleton.comp4601.dao.modal;
 
-import java.util.List;
-
-public class User {
+public class Review {
 
     private String id;
 
-    private List<String> viewedSite;
+    private String userId;
 
-    private List<String> reviews;
+    private String pageId;
 
-    private Double scoreAvg;
+    private String content;
 
-    private Double helpful;
+    private Integer helpful;
 
-    private Integer thumbsFromOthers;
+    private Integer helpless;
+
+    private Double score;
+
+    private String summary;
 
     private Integer veryPositive;
 
@@ -26,14 +28,6 @@ public class User {
 
     private Integer veryNegative;
 
-    public Integer getThumbsFromOthers() {
-        return thumbsFromOthers;
-    }
-
-    public void setThumbsFromOthers(Integer thumbsFromOthers) {
-        this.thumbsFromOthers = thumbsFromOthers;
-    }
-
     public String getId() {
         return id;
     }
@@ -42,36 +36,60 @@ public class User {
         this.id = id;
     }
 
-    public List<String> getViewedSite() {
-        return viewedSite;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setViewedSite(List<String> viewedSite) {
-        this.viewedSite = viewedSite;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
-    public List<String> getReviews() {
-        return reviews;
+    public String getPageId() {
+        return pageId;
     }
 
-    public void setReviews(List<String> reviews) {
-        this.reviews = reviews;
+    public void setPageId(String pageId) {
+        this.pageId = pageId;
     }
 
-    public Double getScoreAvg() {
-        return scoreAvg;
+    public String getContent() {
+        return content;
     }
 
-    public void setScoreAvg(Double scoreAvg) {
-        this.scoreAvg = scoreAvg;
+    public void setContent(String content) {
+        this.content = content;
     }
 
-    public Double getHelpful() {
+    public Integer getHelpful() {
         return helpful;
     }
 
-    public void setHelpful(Double helpful) {
+    public void setHelpful(Integer helpful) {
         this.helpful = helpful;
+    }
+
+    public Integer getHelpless() {
+        return helpless;
+    }
+
+    public void setHelpless(Integer helpless) {
+        this.helpless = helpless;
+    }
+
+    public Double getScore() {
+        return score;
+    }
+
+    public void setScore(Double score) {
+        this.score = score;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
     }
 
     public Integer getVeryPositive() {

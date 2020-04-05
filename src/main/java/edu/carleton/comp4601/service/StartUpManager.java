@@ -1,9 +1,6 @@
-package service;
+package edu.carleton.comp4601.service;
 
-import dao.impl.UserDAO;
-import service.crawler.CrawlerManager;
-
-import java.io.IOException;
+import edu.carleton.comp4601.service.crawler.CrawlerManager;
 
 public class StartUpManager {
 

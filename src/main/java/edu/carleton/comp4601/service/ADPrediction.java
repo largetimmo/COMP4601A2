@@ -1,12 +1,12 @@
-package service;
+package edu.carleton.comp4601.service;
 
 
-import dao.Community.CommunityCalculator;
-import dao.impl.PageDAO;
-import dao.impl.ReviewDAO;
-import dao.impl.UserDAO;
-import dao.modal.Review;
-import dao.modal.User;
+import edu.carleton.comp4601.dao.Community.CommunityCalculator;
+import edu.carleton.comp4601.dao.impl.PageDAO;
+import edu.carleton.comp4601.dao.impl.ReviewDAO;
+import edu.carleton.comp4601.dao.impl.UserDAO;
+import edu.carleton.comp4601.dao.modal.Review;
+import edu.carleton.comp4601.dao.modal.User;
 
 import java.io.IOException;
 import java.util.*;

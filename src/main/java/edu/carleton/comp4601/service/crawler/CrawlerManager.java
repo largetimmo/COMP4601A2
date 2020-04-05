@@ -1,20 +1,18 @@
-package service.crawler;
+package edu.carleton.comp4601.service.crawler;
 
-import dao.impl.PageDAO;
-import dao.impl.ReviewDAO;
-import dao.impl.UserDAO;
-import dao.modal.Page;
-import dao.modal.Review;
-import dao.modal.User;
+import edu.carleton.comp4601.dao.impl.PageDAO;
+import edu.carleton.comp4601.dao.impl.ReviewDAO;
+import edu.carleton.comp4601.dao.impl.UserDAO;
+import edu.carleton.comp4601.dao.modal.Page;
+import edu.carleton.comp4601.dao.modal.Review;
+import edu.carleton.comp4601.dao.modal.User;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.function.BiConsumer;

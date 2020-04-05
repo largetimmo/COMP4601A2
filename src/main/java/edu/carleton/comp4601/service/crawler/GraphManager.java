@@ -1,14 +1,10 @@
-package service.crawler;
+package edu.carleton.comp4601.service.crawler;
 
 import Jama.Matrix;
 import org.jgrapht.graph.*;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.util.stream.IntStream;
 import java.util.zip.ZipInputStream;

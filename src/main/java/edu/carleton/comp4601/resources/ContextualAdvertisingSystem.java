@@ -1,16 +1,14 @@
-package controller;
+package edu.carleton.comp4601.resources;
 
-import dao.Community.CommunityCalculator;
-import dao.Community.FindOptimalK;
-import dao.impl.PageDAO;
-import dao.impl.UserDAO;
-import dao.modal.User;
-import service.ADPrediction;
-import service.Config;
-import service.UserPrediction;
+import edu.carleton.comp4601.dao.Community.CommunityCalculator;
+import edu.carleton.comp4601.dao.impl.PageDAO;
+import edu.carleton.comp4601.dao.impl.UserDAO;
+import edu.carleton.comp4601.dao.modal.User;
+import edu.carleton.comp4601.service.ADPrediction;
+import edu.carleton.comp4601.service.Config;
+import edu.carleton.comp4601.service.UserPrediction;
 
 import javax.ws.rs.*;
-import java.awt.*;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -20,7 +18,7 @@ import java.util.Map;
 import javax.ws.rs.core.MediaType;
 
 @Path("/rs")
-public class SDAController {
+public class ContextualAdvertisingSystem {
     UserDAO userd = UserDAO.getInstance();
 
     PageDAO pageDAO = PageDAO.getInstance();
@@ -175,7 +173,7 @@ public class SDAController {
             "\t\t\t\t<h1>Oops!</h1>\n" +
             "\t\t\t\t<h2>";
 
-    public SDAController() throws IOException {
+    public ContextualAdvertisingSystem() throws IOException {
     }
 
     @GET

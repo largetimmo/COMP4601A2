@@ -1,10 +1,7 @@
-package dao.Community;
-import dao.impl.UserDAO;
-import dao.modal.User;
+package edu.carleton.comp4601.dao.Community;
+import edu.carleton.comp4601.dao.modal.User;
 
 import java.io.*;
-import java.lang.reflect.Array;
-import java.security.cert.Certificate;
 import java.util.*;
 
 public class CommunityCalculator {

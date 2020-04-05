@@ -1,7 +1,7 @@
-package dao.Community;
+package edu.carleton.comp4601.dao.Community;
 
-import dao.impl.UserDAO;
-import dao.modal.User;
+import edu.carleton.comp4601.dao.impl.UserDAO;
+import edu.carleton.comp4601.dao.modal.User;
 
 import java.util.ArrayList;
 import java.util.List;

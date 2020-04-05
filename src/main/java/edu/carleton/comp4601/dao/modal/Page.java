@@ -1,4 +1,4 @@
-package dao.modal;
+package edu.carleton.comp4601.dao.modal;
 
 import java.util.List;
 
