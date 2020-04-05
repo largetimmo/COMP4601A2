@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import javax.ws.rs.core.MediaType;
 
-@Path("/sda")
+@Path("/rs")
 public class SDAController {
     UserDAO userd = UserDAO.getInstance();
 
